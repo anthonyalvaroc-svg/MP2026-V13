@@ -5,363 +5,135 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>REPORTE MANTENIMIENTO PREVENTIVO ATP</title>
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0f766e" />
+  <meta name="theme-color" content="#0f172a" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
-    :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
-      --primary: #0f766e;
-      --primary-dark: #115e59;
-      --danger: #dc2626;
-      --accent: #0284c7;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 40px; }
-    header {
-      background: #0f172a;
-      color: #ffffff;
-      padding: 14px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      border-bottom: 2px solid var(--primary);
-    }
-    header h1 { font-size: 0.98rem; font-weight: 700; letter-spacing: 0.3px; }
-    .version-badge {
-      background: var(--primary);
-      color: #fff;
-      font-size: 0.75rem;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-weight: 600;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; padding-bottom: 40px; }
+    header { background: #0f172a; color: #ffffff; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 20; }
+    header h1 { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.3px; }
+    .version-badge { background: #0f766e; color: #fff; padding: 3px 9px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; }
     .container { max-width: 780px; margin: 0 auto; padding: 14px; }
-    .create-box {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 16px;
-      display: flex;
-      gap: 8px;
-    }
-    .create-box input {
-      flex: 1;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.95rem;
-      outline: none;
-    }
-    .create-box input:focus { border-color: var(--primary); }
-    .btn {
-      border: none;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      transition: opacity 0.15s;
-    }
-    .btn:active { opacity: 0.8; }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-secondary { background: #e2e8f0; color: var(--text); }
-    .btn-accent { background: var(--accent); color: #fff; }
-    .btn-danger { background: #fee2e2; color: var(--danger); }
-    .btn-sm { padding: 7px 10px; font-size: 0.8rem; }
-
-    /* Tarjeta Carpeta Principal */
-    .project-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-    .project-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-    .project-title {
-      font-size: 1.02rem;
-      font-weight: 700;
-      color: var(--text);
-      cursor: pointer;
-      word-break: break-word;
-    }
-    .pct-pill {
-      background: #e2e8f0;
-      color: var(--text);
-      font-size: 0.78rem;
-      font-weight: 700;
-      padding: 3px 9px;
-      border-radius: 999px;
-      white-space: nowrap;
-    }
-    .pct-pill.complete { background: #065f46; color: #fff; }
-    .progress-track {
-      width: 100%;
-      height: 7px;
-      background: #e2e8f0;
-      border-radius: 999px;
-      overflow: hidden;
-      margin-bottom: 12px;
-    }
-    .progress-fill {
-      height: 100%;
-      background: var(--primary);
-      transition: width 0.25s ease;
-    }
+    .card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+    .input-row { display: flex; gap: 8px; }
+    input[type="text"] { flex: 1; padding: 11px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.92rem; }
+    button { border: none; border-radius: 8px; padding: 10px 14px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-primary { background: #0f766e; color: #fff; }
+    .btn-secondary { background: #e2e8f0; color: #0f172a; }
+    .btn-dark { background: #0f172a; color: #fff; }
+    .btn-danger { background: #fee2e2; color: #b91c1c; }
+    .project-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .project-title { font-weight: 700; font-size: 1rem; color: #0f172a; cursor: pointer; }
+    .progress-wrap { flex: 1; min-width: 150px; }
+    .progress-text { font-size: 0.78rem; font-weight: 700; color: #334155; margin-bottom: 4px; }
+    .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #0f766e; transition: width 0.25s; }
     .progress-fill.complete { background: #065f46; }
-    .project-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-
-    /* Vista Interior */
-    .inside-header {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-    .inside-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .tabs {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 6px;
-      margin-bottom: 12px;
-    }
-    .tab-btn {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-    .tab-btn.active {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-    }
-
-    /* Subcarpetas */
-    .sub-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-    .sub-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .sub-title { font-size: 0.92rem; font-weight: 700; color: var(--text); }
-    .sub-badge {
-      font-size: 0.72rem;
-      padding: 2px 7px;
-      border-radius: 6px;
-      background: #f1f5f9;
-      color: var(--muted);
-      white-space: nowrap;
-      font-weight: 600;
-    }
-    .sub-badge.filled { background: #ccfbf1; color: #0f766e; }
-    .sub-desc { font-size: 0.78rem; color: var(--muted); margin-bottom: 10px; line-height: 1.35; }
-    .sub-actions { display: flex; gap: 8px; margin-bottom: 8px; }
-    .sub-actions .btn { flex: 1; }
-
-    /* Miniaturas */
-    .thumb-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .thumb-item {
-      position: relative;
-      aspect-ratio: 1 / 1;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      background: #f1f5f9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .thumb-item img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
-    .thumb-doc {
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-align: center;
-      padding: 4px;
-      color: var(--text);
-      cursor: pointer;
-      word-break: break-all;
-    }
-    .thumb-del {
-      position: absolute;
-      top: 3px;
-      right: 3px;
-      background: rgba(220, 38, 38, 0.92);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1;
-      cursor: pointer;
-    }
-
-    /* Visor Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.95);
-      z-index: 100;
-      flex-direction: column;
-      justify-content: space-between;
-      color: #fff;
-    }
-    .modal.open { display: flex; }
-    .modal-bar {
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(0,0,0,0.4);
-    }
-    .modal-body {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-      padding: 10px;
-    }
-    .modal-body img { max-width: 100%; max-height: 82vh; object-fit: contain; border-radius: 6px; }
-    .nav-arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(255,255,255,0.2);
-      color: #fff;
-      border: none;
-      font-size: 1.8rem;
-      padding: 10px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .nav-prev { left: 10px; }
-    .nav-next { right: 10px; }
-
-    /* Toast */
-    #toast {
-      position: fixed;
-      bottom: 18px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #0f172a;
-      color: #fff;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      z-index: 200;
-      display: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-      text-align: center;
-      max-width: 90%;
-    }
+    .actions-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 4px; }
+    .tab-btn { background: #e2e8f0; color: #334155; white-space: nowrap; font-size: 0.8rem; padding: 8px 12px; }
+    .tab-btn.active { background: #0f172a; color: #ffffff; }
+    .sub-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+    .sub-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+    .sub-desc { font-size: 0.76rem; color: #64748b; margin-bottom: 10px; }
+    .badge-empty { background: #f1f5f9; color: #64748b; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; }
+    .badge-count { background: #ccfbf1; color: #0f766e; font-size: 0.72rem; padding: 2px 7px; border-radius: 6px; }
+    .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; margin-top: 10px; }
+    .thumb-box { position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1; background: #f1f5f9; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .thumb-box img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-del { position: absolute; top: 3px; right: 3px; background: rgba(185,28,28,0.9); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; padding: 0; }
+    /* Camera Overlay */
+    #cameraModal { display: none; position: fixed; inset: 0; background: #000; z-index: 100; flex-direction: column; justify-content: space-between; }
+    #cameraVideo { width: 100%; height: 100%; object-fit: cover; }
+    .cam-top { position: absolute; top: 0; left: 0; right: 0; padding: 14px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(rgba(0,0,0,0.65), transparent); color: #fff; z-index: 102; }
+    .cam-bottom { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; display: flex; justify-content: space-around; align-items: center; background: linear-gradient(transparent, rgba(0,0,0,0.75)); z-index: 102; }
+    .shutter-btn { width: 68px; height: 68px; border-radius: 50%; background: #fff; border: 5px solid #cbd5e1; cursor: pointer; }
+    .shutter-btn:active { transform: scale(0.92); background: #e2e8f0; }
+    .cam-preview { width: 52px; height: 52px; border-radius: 8px; border: 2px solid #fff; overflow: hidden; background: #1e293b; position: relative; cursor: pointer; }
+    .cam-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .cam-badge { position: absolute; bottom: 2px; right: 2px; background: #0f766e; color: #fff; font-size: 10px; padding: 1px 4px; border-radius: 4px; font-weight: 700; }
+    /* Viewer Modal */
+    #viewerModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 110; flex-direction: column; justify-content: space-between; color: #fff; }
+    .viewer-top { padding: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .viewer-body { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+    .viewer-body img { max-width: 100%; max-height: 82vh; object-fit: contain; }
+    .nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: #fff; font-size: 1.6rem; width: 42px; height: 42px; border-radius: 50%; }
+    #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 0.85rem; z-index: 200; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
   </style>
 </head>
 <body>
   <header>
     <h1>REPORTE MANTENIMIENTO PREVENTIVO ATP</h1>
-    <span class="version-badge">v15.6 ∞</span>
+    <span class="version-badge">v15.7 ∞</span>
   </header>
 
-  <div class="container">
-    <!-- Vista 1: Solo Carpetas Principales -->
-    <div id="view-projects">
-      <div class="create-box">
-        <input type="text" id="new-project-name" placeholder="NOMBRE SITE Y FECHA_10.10.26" />
-        <button class="btn btn-primary" onclick="createProject()">Crear</button>
+  <div class="container" id="mainView">
+    <div class="card">
+      <div class="input-row">
+        <input type="text" id="newProjectName" placeholder="NOMBRE SITE Y FECHA_10.10.26" />
+        <button class="btn-primary" onclick="createProject()">+ Crear</button>
       </div>
-      <div id="projects-list"></div>
+    </div>
+    <div id="projectsList"></div>
+  </div>
+
+  <div class="container" id="detailView" style="display:none;">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;">
+        <button class="btn-secondary" onclick="closeProject()">← Carpetas</button>
+        <strong id="detailTitle" style="font-size:0.95rem;"></strong>
+      </div>
+      <div class="progress-text" id="detailProgressText">0% (0/60)</div>
+      <div class="progress-bar"><div class="progress-fill" id="detailProgressFill" style="width:0%"></div></div>
+      <div class="actions-row">
+        <button class="btn-dark" onclick="exportZip(currentProjectId, false)">Descargar ZIP</button>
+        <button class="btn-primary" onclick="exportZip(currentProjectId, true)">Compartir ZIP</button>
+      </div>
+      <div id="readyShareBox" style="display:none; margin-top:10px;"></div>
     </div>
 
-    <!-- Vista 2: Interior de Carpeta Principal -->
-    <div id="view-inside" style="display:none;">
-      <div class="inside-header">
-        <div class="inside-top">
-          <button class="btn btn-secondary btn-sm" onclick="closeProject()">← Volver</button>
-          <span id="inside-pct" class="pct-pill">0% (0/60)</span>
-        </div>
-        <h2 id="inside-title" style="font-size:1.05rem; margin-bottom:8px;"></h2>
-        <div class="progress-track" style="margin-bottom:0;">
-          <div id="inside-bar" class="progress-fill" style="width:0%;"></div>
-        </div>
-      </div>
+    <div class="tabs" id="tabsBar"></div>
+    <div id="subfoldersList"></div>
+  </div>
 
-      <div class="tabs">
-        <button class="tab-btn active" id="tab-1" onclick="switchTab(1)">1. F17-CARPETA DE FOTOS</button>
-        <button class="tab-btn" id="tab-2" onclick="switchTab(2)">2. FORMATOS MP</button>
-        <button class="tab-btn" id="tab-3" onclick="switchTab(3)">3. MANTENIMIENTO PREVENTIVO</button>
+  <!-- Live Burst Camera Modal -->
+  <div id="cameraModal">
+    <div class="cam-top">
+      <span id="camInfo" style="font-size:0.8rem;">Ráfaga activa (Volumen + / -)</span>
+      <div style="display:flex; gap:6px;">
+        <button class="btn-secondary" style="padding:6px 10px; font-size:0.75rem;" onclick="fallbackNativeCamera()">Cámara Sistema</button>
+        <button class="btn-danger" style="padding:6px 10px; font-size:0.75rem;" onclick="closeCamera()">Cerrar</button>
       </div>
-
-      <div id="subfolders-list"></div>
+    </div>
+    <video id="cameraVideo" autoplay playsinline muted></video>
+    <div class="cam-bottom">
+      <div class="cam-preview" id="camPreviewBox" onclick="openLastCaptured()">
+        <img id="camPreviewImg" style="display:none;" />
+        <span class="cam-badge" id="camCountBadge">0</span>
+      </div>
+      <button class="shutter-btn" id="shutterBtn" onclick="captureBurstFrame()"></button>
+      <div style="width:52px;"></div>
     </div>
   </div>
 
-  <!-- Inputs ocultos compatibles con APK / WebView -->
-  <input type="file" id="input-camera" accept="image/*" style="display:none;" />
-  <input type="file" id="input-gallery" accept="image/*,video/*,application/pdf" multiple style="display:none;" />
+  <input type="file" id="hiddenUploadInput" multiple style="display:none;" onchange="handleFileUpload(event)" />
+  <input type="file" id="hiddenNativeCamInput" accept="image/*" capture="environment" style="display:none;" onchange="handleNativeCamCapture(event)" />
 
-  <!-- Visor de galería deslizable -->
-  <div id="viewer-modal" class="modal">
-    <div class="modal-bar">
-      <span id="viewer-info" style="font-size:0.85rem;">1 / 1</span>
+  <!-- Viewer Modal -->
+  <div id="viewerModal">
+    <div class="viewer-top">
+      <span id="viewerCounter" style="font-size:0.85rem;">1 / 1</span>
       <div style="display:flex; gap:8px;">
-        <button class="btn btn-danger btn-sm" onclick="deleteFromViewer()">Eliminar</button>
-        <button class="btn btn-secondary btn-sm" onclick="closeViewer()">Cerrar</button>
+        <button class="btn-danger" onclick="deleteCurrentViewed()">Eliminar</button>
+        <button class="btn-secondary" onclick="closeViewer()">Cerrar</button>
       </div>
     </div>
-    <div class="modal-body" id="viewer-touch-area">
-      <button class="nav-arrow nav-prev" onclick="navViewer(-1)">‹</button>
-      <div id="viewer-content"></div>
-      <button class="nav-arrow nav-next" onclick="navViewer(1)">›</button>
+    <div class="viewer-body" id="viewerTouchArea">
+      <button class="nav-arrow" style="left:10px;" onclick="navViewer(-1)">‹</button>
+      <img id="viewerImg" />
+      <button class="nav-arrow" style="right:10px;" onclick="navViewer(1)">›</button>
     </div>
+    <div style="padding:10px; text-align:center; font-size:0.8rem; color:#cbd5e1;" id="viewerName"></div>
   </div>
 
   <div id="toast"></div>

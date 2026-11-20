@@ -1,15 +1,16 @@
 {
   "name": "REPORTE MANTENIMIENTO PREVENTIVO ATP",
-  "short_name": "Reporte MP ATP",
+  "short_name": "Reporte ATP",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f8fafc",
-  "theme_color": "#0f766e",
+  "theme_color": "#0f172a",
   "icons": [
     {
       "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
