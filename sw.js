@@ -1,4 +1,4 @@
-const CACHE_NAME = 'reportes-site-v15.5';
+const CACHE_NAME = 'atp-mp-cache-v15.6';
 const ASSETS = [
   './',
   './index.html',
@@ -8,24 +8,21 @@ const ASSETS = [
   './no_aplica.png'
 ];
 
-self.addEventListener('install', e => {
+self.addEventListener('install', (e) => {
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
+  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
 });
 
-self.addEventListener('activate', e => {
+self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
-  return self.clients.claim();
 });
 
-self.addEventListener('fetch', e => {
+self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then(res => res || fetch(e.request))
+    caches.match(e.request).then((res) => res || fetch(e.request))
   );
 });
