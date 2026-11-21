@@ -3,176 +3,385 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>REPORTE MANTENIMIENTO PREVENTIVO ATP</title>
+  <title>Reportes Site - v16.0</title>
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#111827" />
+  <link rel="icon" type="image/png" href="icon.png" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
-      --card: #ffffff;
+      --surface: #ffffff;
+      --ink: #0f172a;
+      --ink-soft: #64748b;
       --border: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
-      --primary: #0f766e;
-      --primary-dark: #065f46;
-      --secondary: #334155;
+      --primary: #111827;
+      --accent: #0f766e;
       --danger: #dc2626;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 40px; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      padding-bottom: 40px;
+    }
     header {
-      background: #0f172a; color: #fff; padding: 14px 16px;
-      display: flex; justify-content: space-between; align-items: center;
-      position: sticky; top: 0; z-index: 50;
+      background: var(--primary);
+      color: #ffffff;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
-    header h1 { font-size: 0.95rem; font-weight: 700; letter-spacing: 0.3px; }
-    .version { font-size: 0.78rem; background: #1e293b; padding: 3px 8px; border-radius: 6px; color: #94a3b8; }
+    header h1 { margin: 0; font-size: 18px; font-weight: 700; }
+    header span { font-size: 12px; background: #1e293b; padding: 3px 8px; border-radius: 999px; color: #94a3b8; }
     .container { max-width: 720px; margin: 0 auto; padding: 14px; }
-    .create-box {
-      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-      padding: 14px; margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap;
+    .hidden { display: none !important; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
-    .create-box input {
-      flex: 1; min-width: 200px; padding: 11px 12px; border: 1px solid #cbd5e1;
-      border-radius: 8px; font-size: 0.95rem; outline: none;
+    .row { display: flex; gap: 8px; align-items: center; }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      outline: none;
     }
-    .create-box input:focus { border-color: var(--primary); }
+    input[type="text"]:focus { border-color: var(--primary); }
     button {
-      border: none; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem;
-      font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
     button:active { opacity: 0.85; }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-secondary { background: var(--secondary); color: #fff; }
-    .btn-outline { background: #f1f5f9; color: var(--text); border: 1px solid #cbd5e1; }
-    .btn-danger { background: #fee2e2; color: var(--danger); }
-    .project-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-      padding: 14px; margin-bottom: 12px;
+    .btn-primary { background: var(--primary); color: #ffffff; }
+    .btn-accent { background: var(--accent); color: #ffffff; }
+    .btn-outline { background: #ffffff; color: var(--ink); border: 1px solid var(--border); }
+    .btn-danger-ghost { background: #fef2f2; color: var(--danger); }
+    .project-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
     }
-    .project-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .project-title { font-size: 1.05rem; font-weight: 700; color: var(--text); word-break: break-word; }
-    .progress-badge {
-      font-size: 0.8rem; font-weight: 700; padding: 3px 8px; border-radius: 99px;
-      background: #e2e8f0; color: var(--text); white-space: nowrap;
+    .project-title { font-weight: 600; font-size: 15px; flex: 1; cursor: pointer; }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin: 12px 0;
+      padding-bottom: 4px;
     }
-    .progress-badge.done { background: var(--primary-dark); color: #fff; }
-    .progress-bar-bg { width: 100%; height: 7px; background: #e2e8f0; border-radius: 99px; overflow: hidden; margin-bottom: 12px; }
-    .progress-bar-fill { height: 100%; background: var(--primary); transition: width 0.25s; }
-    .progress-bar-fill.done { background: var(--primary-dark); }
-    .project-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-    .project-actions button { flex: 1; min-width: 85px; padding: 8px 10px; font-size: 0.82rem; }
-    .nav-bar {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      background: var(--card); border: 1px solid var(--border); padding: 10px 12px;
-      border-radius: 10px; margin-bottom: 12px;
-    }
-    .tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; }
     .tab-btn {
-      flex: 1; background: #e2e8f0; color: var(--text); padding: 10px 8px;
-      font-size: 0.8rem; border-radius: 8px; text-align: center;
+      flex: 1;
+      white-space: nowrap;
+      background: #e2e8f0;
+      color: #334155;
+      font-size: 12px;
+      padding: 9px 10px;
     }
-    .tab-btn.active { background: #0f172a; color: #fff; }
+    .tab-btn.active { background: var(--primary); color: #ffffff; }
     .sub-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-      padding: 12px; margin-bottom: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
     }
-    .sub-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
-    .sub-title { font-size: 0.92rem; font-weight: 700; }
-    .sub-count { font-size: 0.75rem; padding: 2px 7px; border-radius: 6px; background: #f1f5f9; color: var(--muted); white-space: nowrap; }
-    .sub-count.has-files { background: #ccfbf1; color: var(--primary-dark); font-weight: 700; }
-    .sub-desc { font-size: 0.78rem; color: var(--muted); margin-bottom: 10px; line-height: 1.3; }
-    .sub-btns { display: flex; gap: 8px; }
-    .sub-btns button { flex: 1; padding: 9px; font-size: 0.85rem; }
-    .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px; margin-top: 10px; }
-    .thumb-item {
-      position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden;
-      border: 1px solid var(--border); background: #f1f5f9; display: flex; align-items: center; justify-content: center;
+    .sub-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .sub-title { font-weight: 700; font-size: 14px; line-height: 1.3; }
+    .sub-desc { font-size: 11.5px; color: var(--ink-soft); margin-top: 5px; line-height: 1.35; }
+    .badge-count {
+      font-size: 11px;
+      font-weight: 700;
+      background: #dcfce7;
+      color: #166534;
+      padding: 3px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
     }
-    .thumb-item img, .thumb-item video { width: 100%; height: 100%; object-fit: cover; }
-    .thumb-pdf { font-size: 0.72rem; font-weight: 700; text-align: center; padding: 4px; color: #b91c1c; }
-    .thumb-del {
-      position: absolute; top: 3px; right: 3px; width: 22px; height: 22px; padding: 0;
-      border-radius: 50%; background: rgba(220,38,38,0.92); color: #fff; font-size: 14px; line-height: 1;
+    .badge-empty {
+      font-size: 11px;
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 3px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .btn-grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .btn-grid-3 button { padding: 8px 4px; font-size: 12px; }
+    .thumb-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .thumb-box {
+      position: relative;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0f172a;
+      border: 1px solid var(--border);
+    }
+    .thumb-box img, .thumb-box video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb-pdf {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #ffffff;
+      font-size: 10px;
+      padding: 4px;
+      background: #991b1b;
+    }
+    .del-mini {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(220, 38, 38, 0.9);
+      color: #fff;
+      font-size: 14px;
+      padding: 0;
+      line-height: 1;
+    }
+    /* Cámara Ráfaga */
+    #cameraModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000000;
+      z-index: 100;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cam-top {
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+      background: rgba(0,0,0,0.6);
+      z-index: 2;
+    }
+    #cameraVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      inset: 0;
+    }
+    .cam-bottom {
+      padding: 20px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: rgba(0,0,0,0.6);
+      z-index: 2;
+    }
+    .shutter-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 5px solid #94a3b8;
+    }
+    #camLastThumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid #fff;
+    }
+    /* Visor */
+    #viewerModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 110;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #fff;
+    }
+    .viewer-top, .viewer-bottom {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #viewerTouchArea {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    #viewerContent img, #viewerContent video {
+      max-width: 100vw;
+      max-height: 78vh;
+      object-fit: contain;
+    }
+    .nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
     }
     #toast {
-      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
-      background: #0f172a; color: #fff; padding: 10px 16px; border-radius: 8px;
-      font-size: 0.85rem; z-index: 200; display: none; max-width: 90%; text-align: center;
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      z-index: 200;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      white-space: nowrap;
     }
-    /* Viewer Modal */
-    #viewerModal {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 150;
-      display: none; flex-direction: column; justify-content: space-between;
-    }
-    .viewer-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; color: #fff; }
-    .viewer-body { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-    .viewer-body img, .viewer-body video { max-width: 100%; max-height: 80vh; object-fit: contain; }
-    .viewer-nav {
-      position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2);
-      color: #fff; font-size: 1.5rem; width: 42px; height: 42px; border-radius: 50%;
-    }
-    .viewer-prev { left: 10px; }
-    .viewer-next { right: 10px; }
-    .hidden { display: none !important; }
   </style>
 </head>
 <body>
   <header>
-    <h1>REPORTE MANTENIMIENTO PREVENTIVO ATP</h1>
-    <span class="version">v15.9 ∞</span>
+    <h1>Reportes Site</h1>
+    <span>v16.0</span>
   </header>
 
   <div class="container">
-    <!-- HOME VIEW: SOLO CARPETAS PRINCIPALES -->
+    <!-- Vista Inicio -->
     <div id="homeView">
-      <div class="create-box">
-        <input type="text" id="newProjectName" placeholder="NOMBRE SITE Y FECHA_10.10.26" />
-        <button class="btn-primary" id="btnCreateProject">+ Crear Carpeta</button>
+      <div class="card">
+        <div style="font-weight:700; font-size:14px; margin-bottom:8px;">Nueva carpeta principal (Site)</div>
+        <div class="row">
+          <input type="text" id="newProjectName" placeholder="Ej. PE-LIM-0045 CERRO SAN CRISTOBAL" />
+          <button class="btn-primary" onclick="createProject()">Crear</button>
+        </div>
       </div>
-      <div id="projectsList"></div>
+      <div id="projectList"></div>
     </div>
 
-    <!-- PROJECT DETAIL VIEW -->
+    <!-- Vista Proyecto -->
     <div id="projectView" class="hidden">
-      <div class="nav-bar">
-        <button class="btn-outline" id="btnBackHome">← Carpetas</button>
-        <div style="flex:1; min-width:0; padding:0 6px;">
-          <div id="activeProjectTitle" style="font-weight:700; font-size:0.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
-          <div id="activeProjectStats" style="font-size:0.78rem; color:var(--muted);"></div>
+      <div class="card">
+        <div class="row" style="margin-bottom:10px;">
+          <button class="btn-outline" onclick="goHome()">← Volver</button>
+          <input type="text" id="editProjectName" />
+          <button class="btn-primary" onclick="renameCurrentProject()">Guardar</button>
         </div>
-        <button class="btn-secondary" id="btnQuickZip" style="padding:8px 10px; font-size:0.8rem;">ZIP</button>
+        <div class="row">
+          <button class="btn-outline" style="flex:1;" onclick="exportZip('download')">Comprimir ZIP</button>
+          <button class="btn-primary" style="flex:1;" onclick="exportZip('share')">Compartir ZIP</button>
+        </div>
+        <div id="shareReadyBox" class="hidden" style="margin-top:10px;">
+          <button id="directShareBtn" class="btn-accent" style="width:100%;">Enviar archivo ZIP ahora</button>
+        </div>
       </div>
 
+      <!-- Contador de Porcentaje -->
+      <div id="progressWrapper" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; margin:10px 0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; color:#1e293b; margin-bottom:6px;">
+          <span>Avance del reporte</span>
+          <span id="progressText">0% (0 / 60 ítems)</span>
+        </div>
+        <div style="width:100%; height:10px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
+          <div id="progressBar" style="width:0%; height:100%; background:#10b981; transition:width 0.3s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Pestañas -->
       <div class="tabs">
-        <button class="tab-btn active" data-tab="f17">1. F17-CARPETA DE FOTOS</button>
-        <button class="tab-btn" data-tab="formatos">2. FORMATOS MP</button>
-        <button class="tab-btn" data-tab="mp">3. MANTENIMIENTO PREVENTIVO</button>
+        <button id="tab1" class="tab-btn active" onclick="switchTab(1)">1. F17-CARPETA DE FOTOS (29)</button>
+        <button id="tab2" class="tab-btn" onclick="switchTab(2)">2. FORMATOS MP</button>
+        <button id="tab3" class="tab-btn" onclick="switchTab(3)">3. MANTENIMIENTO PREVENTIVO (30)</button>
       </div>
 
-      <div id="subfoldersList"></div>
+      <div id="subfoldersContainer"></div>
     </div>
   </div>
 
-  <!-- Hidden inputs for native camera burst & gallery -->
-  <input type="file" id="nativeCamInput" accept="image/*" capture="environment" class="hidden" />
+  <!-- Inputs ocultos -->
   <input type="file" id="galleryInput" multiple class="hidden" />
+  <input type="file" id="timestampCamInput" accept="image/*" capture="environment" class="hidden" />
 
-  <!-- Fullscreen Carousel Viewer -->
+  <!-- Modal Cámara Ráfaga -->
+  <div id="cameraModal">
+    <video id="cameraVideo" autoplay playsinline></video>
+    <div class="cam-top">
+      <div>
+        <div id="camFolderLabel" style="font-weight:700; font-size:14px;"></div>
+        <div style="font-size:12px; color:#cbd5e1;">Capturadas: <span id="camBurstCount">0</span></div>
+      </div>
+      <button class="btn-outline" onclick="closeBurstCamera()">Cerrar</button>
+    </div>
+    <div class="cam-bottom">
+      <img id="camLastThumb" class="hidden" onclick="openCamPreviewViewer()" />
+      <button class="shutter-btn" onclick="captureBurstPhoto()"></button>
+      <div style="width:52px;"></div>
+    </div>
+  </div>
+
+  <!-- Modal Visor -->
   <div id="viewerModal">
     <div class="viewer-top">
-      <span id="viewerCounter" style="font-size:0.85rem;"></span>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-danger" id="viewerDeleteBtn" style="padding:6px 10px; font-size:0.8rem;">Eliminar</button>
-        <button class="btn-outline" id="viewerCloseBtn" style="padding:6px 10px; font-size:0.8rem;">Cerrar</button>
+      <span id="viewerCounter">1 / 1</span>
+      <span id="viewerFilename" style="font-size:12px; color:#cbd5e1; max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+      <div class="row">
+        <button class="btn-danger-ghost" style="padding:6px 10px; font-size:12px;" onclick="deleteFromViewer()">Eliminar</button>
+        <button class="btn-outline" style="padding:6px 10px; font-size:12px;" onclick="closeViewer()">Cerrar</button>
       </div>
     </div>
-    <div class="viewer-body" id="viewerTouchArea">
-      <button class="viewer-nav viewer-prev" id="viewerPrevBtn">‹</button>
+    <div id="viewerTouchArea">
+      <button class="nav-arrow" style="left:10px;" onclick="navViewer(-1)">‹</button>
       <div id="viewerContent"></div>
-      <button class="viewer-nav viewer-next" id="viewerNextBtn">›</button>
+      <button class="nav-arrow" style="right:10px;" onclick="navViewer(1)">›</button>
     </div>
-    <div id="viewerName" style="color:#cbd5e1; text-align:center; padding:10px; font-size:0.8rem;"></div>
+    <div class="viewer-bottom" style="justify-content:center; font-size:12px; color:#94a3b8;">
+      Desliza izquierda o derecha para navegar
+    </div>
   </div>
 
   <div id="toast"></div>
