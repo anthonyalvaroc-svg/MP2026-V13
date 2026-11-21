@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Reportes Site - v16.0</title>
-  <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#111827" />
-  <link rel="icon" type="image/png" href="icon.png" />
+  <title>Reportes Site - v16.1</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.png" type="image/png" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
-      --surface: #ffffff;
+      --card: #ffffff;
       --ink: #0f172a;
       --ink-soft: #64748b;
       --border: #e2e8f0;
       --primary: #111827;
-      --accent: #0f766e;
-      --danger: #dc2626;
+      --primary-hover: #1e293b;
+      --accent: #10b981;
+      --danger: #ef4444;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
@@ -27,23 +28,24 @@
       color: var(--ink);
       padding-bottom: 40px;
     }
+    .hidden { display: none !important; }
     header {
       background: var(--primary);
-      color: #ffffff;
+      color: #fff;
       padding: 14px 16px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 20;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
     }
-    header h1 { margin: 0; font-size: 18px; font-weight: 700; }
-    header span { font-size: 12px; background: #1e293b; padding: 3px 8px; border-radius: 999px; color: #94a3b8; }
-    .container { max-width: 720px; margin: 0 auto; padding: 14px; }
-    .hidden { display: none !important; }
+    header h1 { margin: 0; font-size: 17px; font-weight: 700; }
+    header span { font-size: 12px; color: #94a3b8; }
+    .container { max-width: 760px; margin: 0 auto; padding: 14px; }
     .card {
-      background: var(--surface);
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 14px;
@@ -56,15 +58,16 @@
       padding: 10px 12px;
       border: 1px solid var(--border);
       border-radius: 8px;
-      font-size: 15px;
+      font-size: 14px;
       outline: none;
+      background: #fff;
     }
     input[type="text"]:focus { border-color: var(--primary); }
     button {
       border: none;
       border-radius: 8px;
       padding: 10px 14px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
@@ -72,13 +75,14 @@
       justify-content: center;
       gap: 6px;
     }
-    button:active { opacity: 0.85; }
-    .btn-primary { background: var(--primary); color: #ffffff; }
-    .btn-accent { background: var(--accent); color: #ffffff; }
-    .btn-outline { background: #ffffff; color: var(--ink); border: 1px solid var(--border); }
-    .btn-danger-ghost { background: #fef2f2; color: var(--danger); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:active { background: var(--primary-hover); }
+    .btn-outline { background: #fff; color: var(--ink); border: 1px solid var(--border); }
+    .btn-outline:active { background: #f1f5f9; }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-danger-ghost { background: transparent; color: var(--danger); border: 1px solid #fecaca; }
     .project-item {
-      background: var(--surface);
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 12px 14px;
@@ -88,223 +92,132 @@
       align-items: center;
       gap: 10px;
     }
-    .project-title { font-weight: 600; font-size: 15px; flex: 1; cursor: pointer; }
+    .project-title { font-weight: 700; font-size: 15px; flex: 1; cursor: pointer; word-break: break-word; }
     .tabs {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 6px;
-      overflow-x: auto;
       margin: 12px 0;
-      padding-bottom: 4px;
     }
     .tab-btn {
-      flex: 1;
-      white-space: nowrap;
       background: #e2e8f0;
-      color: #334155;
-      font-size: 12px;
-      padding: 9px 10px;
+      color: #475569;
+      padding: 10px 6px;
+      font-size: 11px;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 1.25;
     }
-    .tab-btn.active { background: var(--primary); color: #ffffff; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
     .sub-card {
-      background: var(--surface);
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
     }
     .sub-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-    .sub-title { font-weight: 700; font-size: 14px; line-height: 1.3; }
-    .sub-desc { font-size: 11.5px; color: var(--ink-soft); margin-top: 5px; line-height: 1.35; }
+    .sub-title { font-weight: 700; font-size: 14px; color: var(--ink); }
+    .sub-desc { font-size: 12px; color: var(--ink-soft); margin-top: 4px; line-height: 1.4; }
     .badge-count {
-      font-size: 11px;
-      font-weight: 700;
       background: #dcfce7;
       color: #166534;
+      font-size: 11px;
+      font-weight: 700;
       padding: 3px 8px;
       border-radius: 999px;
       white-space: nowrap;
     }
     .badge-empty {
-      font-size: 11px;
       background: #f1f5f9;
       color: #64748b;
+      font-size: 11px;
+      font-weight: 600;
       padding: 3px 8px;
       border-radius: 999px;
       white-space: nowrap;
     }
-    .btn-grid-3 {
+    .btn-grid-2 {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 6px;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
       margin-top: 10px;
     }
-    .btn-grid-3 button { padding: 8px 4px; font-size: 12px; }
     .thumb-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      margin-top: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
     }
     .thumb-box {
       position: relative;
-      aspect-ratio: 1;
+      aspect-ratio: 1 / 1;
       border-radius: 8px;
       overflow: hidden;
-      background: #0f172a;
       border: 1px solid var(--border);
+      background: #0f172a;
+      cursor: pointer;
     }
     .thumb-box img, .thumb-box video { width: 100%; height: 100%; object-fit: cover; display: block; }
     .thumb-pdf {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: #ffffff;
-      font-size: 10px;
-      padding: 4px;
-      background: #991b1b;
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      background: #fee2e2; color: #991b1b;
+      font-size: 11px; font-weight: 700; text-align: center; padding: 4px;
     }
     .del-mini {
-      position: absolute;
-      top: 3px;
-      right: 3px;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: rgba(220, 38, 38, 0.9);
-      color: #fff;
-      font-size: 14px;
-      padding: 0;
-      line-height: 1;
-    }
-    /* Cámara Ráfaga */
-    #cameraModal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #000000;
-      z-index: 100;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .cam-top {
-      padding: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: #fff;
-      background: rgba(0,0,0,0.6);
-      z-index: 2;
-    }
-    #cameraVideo {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      position: absolute;
-      inset: 0;
-    }
-    .cam-bottom {
-      padding: 20px;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      background: rgba(0,0,0,0.6);
-      z-index: 2;
-    }
-    .shutter-btn {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      background: #ffffff;
-      border: 5px solid #94a3b8;
-    }
-    #camLastThumb {
-      width: 52px;
-      height: 52px;
-      border-radius: 8px;
-      object-fit: cover;
-      border: 2px solid #fff;
-    }
-    /* Visor */
-    #viewerModal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.95);
-      z-index: 110;
-      flex-direction: column;
-      justify-content: space-between;
-      color: #fff;
-    }
-    .viewer-top, .viewer-bottom {
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    #viewerTouchArea {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    #viewerContent img, #viewerContent video {
-      max-width: 100vw;
-      max-height: 78vh;
-      object-fit: contain;
-    }
-    .nav-arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(255,255,255,0.18);
-      color: #fff;
-      font-size: 24px;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
+      position: absolute; top: 3px; right: 3px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(239, 68, 68, 0.92); color: #fff;
+      font-size: 14px; line-height: 1; padding: 0;
     }
     #toast {
-      display: none;
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e293b;
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 999px;
-      font-size: 13px;
-      z-index: 200;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-      white-space: nowrap;
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.94); color: #fff;
+      padding: 10px 18px; border-radius: 999px; font-size: 13px; font-weight: 500;
+      z-index: 100; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      max-width: 90%; text-align: center;
+    }
+    #viewerModal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+      z-index: 60; display: none; flex-direction: column; color: #fff;
+    }
+    .viewer-top {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; background: rgba(15,23,42,0.8);
+    }
+    .viewer-body {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; padding: 10px;
+    }
+    .viewer-body img, .viewer-body video { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .nav-arrow {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.18); color: #fff;
+      width: 40px; height: 40px; border-radius: 50%; font-size: 22px;
     }
   </style>
 </head>
 <body>
   <header>
     <h1>Reportes Site</h1>
-    <span>v16.0</span>
+    <span>v16.1</span>
   </header>
 
   <div class="container">
-    <!-- Vista Inicio -->
+    <!-- VISTA INICIO -->
     <div id="homeView">
       <div class="card">
-        <div style="font-weight:700; font-size:14px; margin-bottom:8px;">Nueva carpeta principal (Site)</div>
+        <div style="font-size:13px; font-weight:700; margin-bottom:8px;">Nueva carpeta principal (Site)</div>
         <div class="row">
-          <input type="text" id="newProjectName" placeholder="Ej. PE-LIM-0045 CERRO SAN CRISTOBAL" />
+          <input type="text" id="newProjectName" placeholder="Ej. SITE_LIMA_NORTE_01" />
           <button class="btn-primary" onclick="createProject()">Crear</button>
         </div>
       </div>
       <div id="projectList"></div>
     </div>
 
-    <!-- Vista Proyecto -->
+    <!-- VISTA PROYECTO -->
     <div id="projectView" class="hidden">
       <div class="card">
         <div class="row" style="margin-bottom:10px;">
@@ -312,18 +225,18 @@
           <input type="text" id="editProjectName" />
           <button class="btn-primary" onclick="renameCurrentProject()">Guardar</button>
         </div>
-        <div class="row">
-          <button class="btn-outline" style="flex:1;" onclick="exportZip('download')">Comprimir ZIP</button>
-          <button class="btn-primary" style="flex:1;" onclick="exportZip('share')">Compartir ZIP</button>
+        <div class="btn-grid-2" style="margin-top:0;">
+          <button class="btn-primary" onclick="exportZip('download')">Comprimir ZIP</button>
+          <button class="btn-accent" onclick="exportZip('share')">Compartir ZIP</button>
         </div>
         <div id="shareReadyBox" class="hidden" style="margin-top:10px;">
           <button id="directShareBtn" class="btn-accent" style="width:100%;">Enviar archivo ZIP ahora</button>
         </div>
       </div>
 
-      <!-- Contador de Porcentaje -->
-      <div id="progressWrapper" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; margin:10px 0;">
-        <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:600; color:#1e293b; margin-bottom:6px;">
+      <!-- CONTADOR DE PORCENTAJE -->
+      <div id="progressWrapper" class="card" style="padding:10px 14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:700; color:#1e293b; margin-bottom:6px;">
           <span>Avance del reporte</span>
           <span id="progressText">0% (0 / 60 ítems)</span>
         </div>
@@ -332,7 +245,7 @@
         </div>
       </div>
 
-      <!-- Pestañas -->
+      <!-- PESTAÑAS -->
       <div class="tabs">
         <button id="tab1" class="tab-btn active" onclick="switchTab(1)">1. F17-CARPETA DE FOTOS (29)</button>
         <button id="tab2" class="tab-btn" onclick="switchTab(2)">2. FORMATOS MP</button>
@@ -343,44 +256,24 @@
     </div>
   </div>
 
-  <!-- Inputs ocultos -->
+  <!-- SELECTORES DE ARCHIVOS Y CÁMARAS DEL SISTEMA -->
+  <input type="file" id="nativeCameraInput" accept="image/*" capture="environment" class="hidden" />
   <input type="file" id="galleryInput" multiple class="hidden" />
-  <input type="file" id="timestampCamInput" accept="image/*" capture="environment" class="hidden" />
 
-  <!-- Modal Cámara Ráfaga -->
-  <div id="cameraModal">
-    <video id="cameraVideo" autoplay playsinline></video>
-    <div class="cam-top">
-      <div>
-        <div id="camFolderLabel" style="font-weight:700; font-size:14px;"></div>
-        <div style="font-size:12px; color:#cbd5e1;">Capturadas: <span id="camBurstCount">0</span></div>
-      </div>
-      <button class="btn-outline" onclick="closeBurstCamera()">Cerrar</button>
-    </div>
-    <div class="cam-bottom">
-      <img id="camLastThumb" class="hidden" onclick="openCamPreviewViewer()" />
-      <button class="shutter-btn" onclick="captureBurstPhoto()"></button>
-      <div style="width:52px;"></div>
-    </div>
-  </div>
-
-  <!-- Modal Visor -->
+  <!-- VISOR LIGHTBOX -->
   <div id="viewerModal">
     <div class="viewer-top">
-      <span id="viewerCounter">1 / 1</span>
+      <span id="viewerCounter" style="font-size:13px; font-weight:700;">1 / 1</span>
       <span id="viewerFilename" style="font-size:12px; color:#cbd5e1; max-width:50%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
       <div class="row">
         <button class="btn-danger-ghost" style="padding:6px 10px; font-size:12px;" onclick="deleteFromViewer()">Eliminar</button>
         <button class="btn-outline" style="padding:6px 10px; font-size:12px;" onclick="closeViewer()">Cerrar</button>
       </div>
     </div>
-    <div id="viewerTouchArea">
+    <div id="viewerTouchArea" class="viewer-body">
       <button class="nav-arrow" style="left:10px;" onclick="navViewer(-1)">‹</button>
-      <div id="viewerContent"></div>
+      <div id="viewerContent" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%;"></div>
       <button class="nav-arrow" style="right:10px;" onclick="navViewer(1)">›</button>
-    </div>
-    <div class="viewer-bottom" style="justify-content:center; font-size:12px; color:#94a3b8;">
-      Desliza izquierda o derecha para navegar
     </div>
   </div>
 

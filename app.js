@@ -74,11 +74,6 @@ let currentProjectId = null;
 let currentTab = 1;
 let activeSubId = null;
 let activeHighRes = false;
-let mediaStream = null;
-let burstCount = 0;
-let gpsText = "GPS: Buscando...";
-let placeText = "Ubicación: Obteniendo...";
-let lastGeocodedCoords = null;
 let viewerItems = [];
 let viewerIndex = 0;
 let lastZipBlob = null;
@@ -86,6 +81,7 @@ let lastZipFilename = "";
 let activeObjectUrls = [];
 let viewerObjectUrl = null;
 
+// Gestión de memoria para ObjectURLs
 function createTrackedUrl(blob) {
   const url = URL.createObjectURL(blob);
   activeObjectUrls.push(url);
@@ -97,6 +93,7 @@ function revokeAllTrackedUrls() {
   activeObjectUrls = [];
 }
 
+// Inicializar IndexedDB
 function initDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open("ReportesSiteDB_v15_1", 1);
@@ -124,44 +121,7 @@ function showToast(msg) {
   t._timer = setTimeout(() => { t.style.display = "none"; }, 2600);
 }
 
-function startGPS() {
-  if (!navigator.geolocation) {
-    gpsText = "GPS no soportado";
-    placeText = "";
-    return;
-  }
-
-  navigator.geolocation.watchPosition(async (pos) => {
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-    gpsText = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-
-    if (lastGeocodedCoords) {
-      const dLat = Math.abs(lat - lastGeocodedCoords.lat);
-      const dLon = Math.abs(lon - lastGeocodedCoords.lon);
-      if (dLat < 0.003 && dLon < 0.003) return;
-    }
-
-    lastGeocodedCoords = { lat, lon };
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}&zoom=16`);
-      const data = await res.json();
-      if (data && data.address) {
-        const dist = data.address.suburb || data.address.city_district || data.address.town || data.address.city || "";
-        const prov = data.address.state || data.address.region || "";
-        placeText = [dist, prov].filter(Boolean).join(", ") || "Perú";
-      }
-    } catch (_) {
-      placeText = "Zona registrada (Offline)";
-    }
-  }, () => {
-    if (gpsText === "GPS: Buscando...") {
-      gpsText = "GPS no disponible";
-      placeText = "";
-    }
-  }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 });
-}
-
+// Cálculo y actualización del contador de porcentaje
 async function updateProgressIndicator() {
   if (!currentProjectId) return;
   const allFiles = await getAllFilesForProject(currentProjectId);
@@ -178,6 +138,7 @@ async function updateProgressIndicator() {
   }
 }
 
+// Gestión de proyectos
 async function getProjects() {
   return new Promise((res) => {
     const tx = db.transaction("projects", "readonly");
@@ -337,10 +298,9 @@ async function renderSubfolders() {
           ${badge}
         </div>
         <div class="sub-desc">${escapeHtml(item.desc)}</div>
-        <div class="btn-grid-3">
-          <button class="btn-primary" onclick="openBurstCamera('${item.id}', '${escapeHtml(item.name)}', ${!!item.highRes})">Cámara App</button>
-          <button class="btn-accent" onclick="triggerTimestampCamera('${item.id}', ${!!item.highRes})">Timestamp</button>
-          <button class="btn-outline" onclick="triggerGalleryUpload('${item.id}', ${!!item.highRes}, ${!!item.allowPdf})">Subir</button>
+        <div class="btn-grid-2">
+          <button class="btn-primary" onclick="triggerNativeCamera('${item.id}', ${!!item.highRes})">Tomar Foto</button>
+          <button class="btn-outline" onclick="triggerGalleryUpload('${item.id}', ${!!item.highRes}, ${!!item.allowPdf})">Subir Foto</button>
         </div>
         ${thumbsHtml}
       </div>
@@ -349,6 +309,43 @@ async function renderSubfolders() {
   container.innerHTML = html;
 }
 
+// Botón único de Cámara que abre el selector de apps de cámara del celular
+function triggerNativeCamera(subId, highRes) {
+  activeSubId = subId;
+  activeHighRes = highRes;
+  const inp = document.getElementById("nativeCameraInput");
+  inp.value = "";
+  inp.click();
+}
+
+document.getElementById("nativeCameraInput").addEventListener("change", async (e) => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
+  showToast("Guardando foto capturada...");
+
+  for (const file of files) {
+    let finalBlob = file;
+    if (file.type.startsWith("image/") && !activeHighRes && file.size > 1024 * 1024) {
+      finalBlob = await compressImageToUnder1MB(file);
+    }
+    const now = new Date();
+    const fallbackName = `CAM_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}_${String(now.getHours()).padStart(2,"0")}${String(now.getMinutes()).padStart(2,"0")}${String(now.getSeconds()).padStart(2,"0")}.jpg`;
+
+    await saveFileToDB({
+      id: "file_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+      projectId: currentProjectId,
+      subId: activeSubId,
+      name: file.name || fallbackName,
+      type: finalBlob.type || "image/jpeg",
+      blob: finalBlob,
+      createdAt: Date.now()
+    });
+  }
+  renderSubfolders();
+  showToast("Foto guardada correctamente");
+});
+
+// Subida desde galería / archivos
 function triggerGalleryUpload(subId, highRes, allowPdf) {
   activeSubId = subId;
   activeHighRes = highRes;
@@ -382,41 +379,7 @@ document.getElementById("galleryInput").addEventListener("change", async (e) => 
   showToast(`${files.length} archivo(s) guardado(s)`);
 });
 
-function triggerTimestampCamera(subId, highRes) {
-  activeSubId = subId;
-  activeHighRes = highRes;
-  const inp = document.getElementById("timestampCamInput");
-  inp.value = "";
-  inp.click();
-}
-
-document.getElementById("timestampCamInput").addEventListener("change", async (e) => {
-  const files = Array.from(e.target.files || []);
-  if (!files.length) return;
-  showToast("Guardando foto de Timestamp Camera...");
-
-  for (const file of files) {
-    let finalBlob = file;
-    if (file.type.startsWith("image/") && !activeHighRes && file.size > 1024 * 1024) {
-      finalBlob = await compressImageToUnder1MB(file);
-    }
-    const now = new Date();
-    const fallbackName = `TS_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}_${String(now.getHours()).padStart(2,"0")}${String(now.getMinutes()).padStart(2,"0")}${String(now.getSeconds()).padStart(2,"0")}.jpg`;
-
-    await saveFileToDB({
-      id: "file_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
-      projectId: currentProjectId,
-      subId: activeSubId,
-      name: file.name || fallbackName,
-      type: finalBlob.type || "image/jpeg",
-      blob: finalBlob,
-      createdAt: Date.now()
-    });
-  }
-  renderSubfolders();
-  showToast("Foto guardada en la subcarpeta");
-});
-
+// Compresión a < 1MB manteniendo nitidez
 function compressImageToUnder1MB(fileOrBlob) {
   return new Promise((resolve) => {
     const img = new Image();
@@ -475,127 +438,12 @@ async function deleteFile(fileId, fileName) {
   };
 }
 
-async function openBurstCamera(subId, subName, highRes) {
-  activeSubId = subId;
-  activeHighRes = highRes;
-  burstCount = 0;
-  document.getElementById("camFolderLabel").textContent = subName;
-  document.getElementById("camBurstCount").textContent = "0";
-  const thumb = document.getElementById("camLastThumb");
-  if (thumb.src && thumb.src.startsWith("blob:")) URL.revokeObjectURL(thumb.src);
-  thumb.classList.add("hidden");
-
-  try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-      audio: false
-    });
-    const video = document.getElementById("cameraVideo");
-    video.srcObject = mediaStream;
-    document.getElementById("cameraModal").style.display = "flex";
-  } catch (err) {
-    showToast("Permiso de cámara requerido. Usa Subir o Timestamp.");
-  }
-}
-
-function closeBurstCamera() {
-  if (mediaStream) {
-    mediaStream.getTracks().forEach(t => t.stop());
-    mediaStream = null;
-  }
-  const thumb = document.getElementById("camLastThumb");
-  if (thumb.src && thumb.src.startsWith("blob:")) {
-    URL.revokeObjectURL(thumb.src);
-    thumb.src = "";
-  }
-  document.getElementById("cameraModal").style.display = "none";
-  renderSubfolders();
-}
-
-async function captureBurstPhoto() {
-  const video = document.getElementById("cameraVideo");
-  if (!video || !video.videoWidth) return;
-
-  const canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  const projName = document.getElementById("editProjectName").value.trim() || "SITE";
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const timeStr = now.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-
-  const lines = [
-    projName,
-    `${dateStr} ${timeStr}`,
-    gpsText,
-    placeText
-  ].filter(Boolean);
-
-  const fontSize = Math.max(18, Math.round(canvas.width * 0.024));
-  ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-  ctx.textAlign = "right";
-  ctx.textBaseline = "bottom";
-
-  ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
-  ctx.shadowBlur = 4;
-  ctx.shadowOffsetX = 1;
-  ctx.shadowOffsetY = 1;
-  ctx.fillStyle = "#ffffff";
-
-  const marginX = Math.round(canvas.width * 0.018);
-  const marginY = Math.round(canvas.height * 0.018);
-  const lineHeight = Math.round(fontSize * 1.25);
-
-  lines.reverse().forEach((line, i) => {
-    ctx.fillText(line, canvas.width - marginX, canvas.height - marginY - (i * lineHeight));
-  });
-
-  const stampName = `IMG_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}_${String(now.getHours()).padStart(2,"0")}${String(now.getMinutes()).padStart(2,"0")}${String(now.getSeconds()).padStart(2,"0")}.jpg`;
-
-  canvas.toBlob(async (rawBlob) => {
-    if (!rawBlob) return;
-    let finalBlob = rawBlob;
-    if (!activeHighRes && rawBlob.size > 1024 * 1024) {
-      finalBlob = await compressImageToUnder1MB(rawBlob);
-    }
-    await saveFileToDB({
-      id: "file_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
-      projectId: currentProjectId,
-      subId: activeSubId,
-      name: stampName,
-      type: "image/jpeg",
-      blob: finalBlob,
-      createdAt: Date.now()
-    });
-
-    burstCount++;
-    document.getElementById("camBurstCount").textContent = String(burstCount);
-    const thumb = document.getElementById("camLastThumb");
-    if (thumb.src && thumb.src.startsWith("blob:")) URL.revokeObjectURL(thumb.src);
-    thumb.src = URL.createObjectURL(finalBlob);
-    thumb.classList.remove("hidden");
-    updateProgressIndicator();
-  }, "image/jpeg", activeHighRes ? 0.96 : 0.86);
-}
-
+// Visor Lightbox deslizable
 async function openViewer(subId, index) {
   activeSubId = subId;
   viewerItems = await getFilesForSub(currentProjectId, subId);
   if (!viewerItems.length) return;
   viewerIndex = Math.max(0, Math.min(index, viewerItems.length - 1));
-  document.getElementById("viewerModal").style.display = "flex";
-  renderViewerSlide();
-}
-
-async function openCamPreviewViewer() {
-  if (!burstCount || !activeSubId) return;
-  const items = await getFilesForSub(currentProjectId, activeSubId);
-  if (!items.length) return;
-  viewerItems = items;
-  viewerIndex = items.length - 1;
   document.getElementById("viewerModal").style.display = "flex";
   renderViewerSlide();
 }
@@ -653,6 +501,7 @@ async function deleteFromViewer() {
   };
 }
 
+// Gestos táctiles izquierda/derecha en visor
 let touchStartX = 0;
 document.getElementById("viewerTouchArea").addEventListener("touchstart", (e) => {
   touchStartX = e.changedTouches.screenX;
@@ -662,12 +511,13 @@ document.getElementById("viewerTouchArea").addEventListener("touchend", (e) => {
   if (Math.abs(diff) > 45) navViewer(diff < 0 ? 1 : -1);
 }, { passive: true });
 
+// Exportar y Compartir ZIP con NO_APLICA.png en carpetas vacías
 async function exportZip(mode) {
   if (typeof JSZip === "undefined") {
     return showToast("Error: Librería ZIP no cargada. Conéctate a internet una vez para guardarla.");
   }
   showToast("Generando archivo ZIP...");
-  const projName = (document.getElementById("editProjectName").value.trim() || "REPORTE_SITE").replace(/[\\/:*?"<>|]/g, "_");
+  const projName = (document.getElementById("editProjectName").value.trim() || "REPORTE_SITE").replace(/[\/:*?"<>|]/g, "_");
   const allFiles = await getAllFilesForProject(currentProjectId);
   const zip = new JSZip();
   const root = zip.folder(projName);
@@ -754,5 +604,4 @@ if ("serviceWorker" in navigator) {
 
 initDB().then(() => {
   renderProjects();
-  startGPS();
 });
